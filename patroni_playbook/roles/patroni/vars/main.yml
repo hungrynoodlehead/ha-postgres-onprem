@@ -1,0 +1,2 @@
+patroni_postgres_root_password: rootpassword
+patroni_postgres_replicator_password: reppassword

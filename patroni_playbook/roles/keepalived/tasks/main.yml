@@ -1,0 +1,29 @@
+- name: Install keepalived
+  ansible.builtin.apt:
+    name:
+      - keepalived
+    state: present
+    update_cache: true
+  notify: Restart keepalived
+
+- name: Create keepalived script user
+  ansible.builtin.user:
+    name: keepalived_script
+    shell: '/bin/false'
+    system: true
+
+- name: Copy keepalived script
+  ansible.builtin.copy:
+    src: 'keepalived_script.sh'
+    dest: '/etc/keepalived/check_haproxy.sh'
+    mode: '744'
+    owner: keepalived_script
+  notify: Restart keepalived
+
+- name: Template keepalived config
+  ansible.builtin.template:
+    src: 'keepalived_config.j2'
+    dest: '/etc/keepalived/keepalived.conf'
+    mode: '644'
+    owner: root
+  notify: Restart keepalived

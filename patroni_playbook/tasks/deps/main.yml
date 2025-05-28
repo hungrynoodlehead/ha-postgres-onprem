@@ -1,0 +1,5 @@
+- name: Install python dependencies
+  ansible.builtin.apt:
+    package:
+      - python3-debian
+    state: present

@@ -1,0 +1,19 @@
+- name: Install Patroni
+  ansible.builtin.apt:
+    name: patroni
+    state: present
+    update_cache: true
+  notify: Restart Patroni
+
+- name: Set Postgres hosts fact
+  ansible.builtin.set_fact:
+    postgres_hosts: >-
+      {{ groups['nodes'] | map('extract', hostvars) | map(attribute='ansible_default_ipv4') | map(attribute='address') }}
+
+- name: Template Patroni config
+  ansible.builtin.template:
+    src: 'patroni_config.j2'
+    dest: '/etc/patroni/config.yml'
+    owner: root
+    mode: '644'
+  notify: Restart Patroni

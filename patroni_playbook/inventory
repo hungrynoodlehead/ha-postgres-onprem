@@ -1,0 +1,4 @@
+[nodes]
+casper@orb keepalived_master=true # One node MUST have keepalived_master=true
+balthasar@orb
+melchior@orb

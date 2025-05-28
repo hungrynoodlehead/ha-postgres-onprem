@@ -1,0 +1,63 @@
+- name: Download etcd
+  ansible.builtin.unarchive:
+    src: https://github.com/etcd-io/etcd/releases/download/v3.6.0/etcd-v3.6.0-linux-amd64.tar.gz
+    dest: "/usr/local/bin"
+    remote_src: true
+    include:
+      - etcd-v3.6.0-linux-amd64/etcd
+      - etcd-v3.6.0-linux-amd64/etcdctl
+      - etcd-v3.6.0-linux-amd64/etcdutl
+    owner: root
+    mode: '755'
+    extra_opts:
+      - --strip-components=1
+  register: etcd_binary
+  notify: Restart etcd service
+
+- name: Create etcd user
+  ansible.builtin.user:
+    name: etcd
+    home: /var/lib/etcd
+    shell: /bin/false
+    system: true
+
+- name: Create etcd folders
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner }}"
+    state: directory
+    mode: "{{ item.mode }}"
+  loop:
+    - path: "/etc/etcd"
+      owner: "root"
+      mode: '644'
+    - path: "/var/lib/etcd"
+      owner: "etcd"
+      mode: '755'
+
+- name: Create etcd service
+  ansible.builtin.copy:
+    src: 'etcd.unit'
+    dest: /etc/systemd/system/etcd.service
+    owner: root
+    mode: '644'
+  notify:
+    - Reload daemon
+    - Restart etcd service
+
+- name: Set host facts
+  ansible.builtin.set_fact:
+    etcd_hosts: >-
+      {{
+        dict(
+          groups['nodes'] | map('extract', hostvars) | map(attribute='ansible_hostname') |
+          zip(groups['nodes'] | map('extract', hostvars) | map(attribute='ansible_default_ipv4') | map(attribute='address'))
+        )
+      }}
+
+- name: Template etcd config
+  ansible.builtin.template:
+    src: 'etcd_config.j2'
+    dest: '/etc/etcd/etcd.env'
+    mode: '644'
+  notify: Restart etcd service

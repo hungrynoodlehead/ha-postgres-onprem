@@ -1,0 +1,33 @@
+- name: Add postgres repo
+  ansible.builtin.deb822_repository:
+    name: "postgres"
+    types: deb
+    uris:
+      - https://apt.postgresql.org/pub/repos/apt
+    suites:
+      - "{{ ansible_distribution_release | lower }}-pgdg"
+    components:
+      - main
+    signed_by: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Install postgres and patroni
+  ansible.builtin.apt:
+    package:
+      - postgresql
+      - postgresql-contrib
+    state: present
+    update_cache: true
+
+- name: Disable Postgres service
+  ansible.builtin.service:
+    name: postgresql
+    state: stopped
+    enabled: false
+
+- name: Create Postgres directory
+  ansible.builtin.file:
+    path: /var/lib/postgresql/data
+    state: directory
+    owner: postgres
+    mode: '700'

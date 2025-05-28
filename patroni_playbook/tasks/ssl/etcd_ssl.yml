@@ -1,0 +1,33 @@
+- name: Create SSL directory
+  ansible.builtin.file:
+    path: ./.artifacts/ssl/
+    state: directory
+    mode: '755'
+
+- name: Create CA private key
+  community.crypto.openssl_privatekey:
+    path: ./.artifacts/ssl/ca.key
+    passphrase: "{{ ssl_passphrase }}"
+  register: ca_privkey
+
+- name: Create CA CSR
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ca_privkey.filename }}"
+    privatekey_passphrase: "{{ ssl_passphrase }}"
+    common_name: etcd CA
+    use_common_name_for_san: false
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+  register: ca_csr
+
+- name: Issue CA
+  community.crypto.x509_certificate:
+    path: ./.artifacts/ssl/ca.pem
+    csr_content: "{{ ca_csr.csr }}"
+    privatekey_path: "{{ ca_privkey.filename }}"
+    privatekey_passphrase: "{{ ssl_passphrase }}"
+    provider: selfsigned

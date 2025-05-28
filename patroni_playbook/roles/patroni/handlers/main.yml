@@ -1,0 +1,5 @@
+- name: Restart Patroni
+  ansible.builtin.service:
+    name: patroni
+    state: restarted
+    enabled: true

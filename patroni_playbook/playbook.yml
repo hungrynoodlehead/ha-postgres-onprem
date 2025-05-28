@@ -1,0 +1,23 @@
+- name: Set up on-premise Postgres cluster
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Install dependencies
+      ansible.builtin.import_tasks: tasks/deps/main.yml
+    - name: Set hosts fact
+      ansible.builtin.set_fact:
+        cluster_hosts: >-
+          {{
+            dict(
+              groups['nodes'] | map('extract', hostvars) | map(attribute='ansible_hostname') |
+              zip(groups['nodes'] | map('extract', hostvars) | map(attribute='ansible_default_ipv4') | map(attribute='address'))
+            )
+          }}
+
+  roles:
+    - etcd
+    - postgres
+    - patroni
+    - haproxy
+    - keepalived
