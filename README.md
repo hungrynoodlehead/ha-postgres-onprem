@@ -1,3 +1,6 @@
+# Any questions?
+[Telegram](https://t.me/hungrynoodlehead)
+
 # Useful resources
 [Presentation](https://www.figma.com/slides/Nq62pA1rXLJWXz4iOpyY6I/HA-on-prem-DB?node-id=1-462)
 
